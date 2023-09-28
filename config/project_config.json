@@ -1,0 +1,16 @@
+{
+    "project_name": "main_getway",
+    "port": ":8078",
+    "secrete_key" : "dk1sah234jas34duy452agsdvs565dfuksygd765234jkr82q3142",
+    "db": {
+        "db_type": "mysql",
+        "host": "127.0.0.1",
+        "port": "3306",
+        "username": "root",
+        "password": "sanket",
+        "database_name": "main_geteway"
+    },
+    "services" : [
+        {"service":"inv","url":"http://localhost:8076"}
+    ]
+}
