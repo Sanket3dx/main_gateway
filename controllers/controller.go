@@ -28,7 +28,7 @@ func Login(ctx *gin.Context) {
 	// Check if the username and password are correct or not in DB
 	userID, err := userModel.AuthenticateUser(LoginDetails.Username, LoginDetails.Password)
 	if err != nil {
-		ctx.JSON(http.StatusUnauthorized, gin.H{"error": true, "data": "Unauthorized Login"})
+		ctx.JSON(http.StatusUnauthorized, gin.H{"error": true, "data": "Username Or Password is incorrect"})
 		ctx.Abort()
 		return
 	}
@@ -50,7 +50,7 @@ func Login(ctx *gin.Context) {
 		ctx.Abort()
 		return
 	}
-	ctx.JSON(http.StatusOK, gin.H{"error": false, "data": JwtKey})
+	ctx.JSON(http.StatusOK, gin.H{"error": false, "authenticated": true, "data": JwtKey})
 }
 
 func ProxyToService(route utils.Route) gin.HandlerFunc {
@@ -61,7 +61,8 @@ func ProxyToService(route utils.Route) gin.HandlerFunc {
 			return
 		}
 
-		targetURL := route.Target + c.Param("path")
+		// Construct the target URL including query parameters
+		targetURL := route.Target + c.Param("path") + "?" + c.Request.URL.RawQuery
 		fmt.Println(targetURL)
 
 		// Create a new request to the target service
@@ -75,6 +76,17 @@ func ProxyToService(route utils.Route) gin.HandlerFunc {
 		for key, values := range c.Request.Header {
 			for _, value := range values {
 				targetReq.Header.Add(key, value)
+			}
+		}
+
+		// Copy query parameters from the original request to the target request
+		targetReq.URL.RawQuery = c.Request.URL.RawQuery
+
+		// Copy form parameters from the original request to the target request
+		c.Request.ParseForm()
+		for key, values := range c.Request.PostForm {
+			for _, value := range values {
+				targetReq.Form.Add(key, value)
 			}
 		}
 

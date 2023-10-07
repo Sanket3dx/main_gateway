@@ -1,6 +1,9 @@
 package utils
 
 import (
+	"bytes"
+	"crypto/aes"
+	"encoding/hex"
 	"encoding/json"
 	"io/ioutil"
 	"log"
@@ -74,4 +77,30 @@ func Contains(slice []string, str string) bool {
 		}
 	}
 	return false
+}
+
+// EncryptToHex encrypts plaintext using AES in ECB mode and returns the ciphertext as a hexadecimal string
+func EncryptToHex(plaintext []byte, key []byte) (string, error) {
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		return "", err
+	}
+
+	blockSize := block.BlockSize()
+	plaintext = PKCS7Padding(plaintext, blockSize)
+
+	ciphertext := make([]byte, len(plaintext))
+
+	for i := 0; i < len(plaintext); i += blockSize {
+		block.Encrypt(ciphertext[i:i+blockSize], plaintext[i:i+blockSize])
+	}
+
+	return hex.EncodeToString(ciphertext), nil
+}
+
+// PKCS7Padding pads the plaintext to a multiple of block size using PKCS#7 padding
+func PKCS7Padding(plaintext []byte, blockSize int) []byte {
+	padding := blockSize - (len(plaintext) % blockSize)
+	padText := bytes.Repeat([]byte{byte(padding)}, padding)
+	return append(plaintext, padText...)
 }

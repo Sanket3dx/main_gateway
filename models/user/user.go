@@ -45,8 +45,9 @@ type UserLogin struct {
 func AuthenticateUser(username, password string) (int, error) {
 	db := mysql_configer.InitDB() // Initialize your database connection
 	defer db.Close()
-
-	// Query the UserLogin table for the provided username and password
+	secKey := "6fcf6c4d0ebd8b0d5e96839d8a240740"
+	password, _ = utils.EncryptToHex([]byte(password), []byte(secKey))
+	fmt.Println(password)
 	query := "SELECT user_login_id FROM user_logins WHERE username = ? AND password = ? AND status = 1"
 	var userID int
 	err := db.QueryRow(query, username, password).Scan(&userID)
